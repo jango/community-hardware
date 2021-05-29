@@ -277,6 +277,7 @@ void uploadTimer() {
       delay(1000);
       if (uploadAttempts >= 10) {
         Serial.println(F("Max upload attempts reached."));
+        ESP.restart();
       } else {
         Serial.print(F("Old uploadInterval: "));
         Serial.println(uploadInterval);

@@ -9,8 +9,6 @@
 
 #include <ESP32Ping.h>
 
-#include <Adafruit_NeoPixel.h>
-
 #include <SPI.h>
 #include <SD.h>
 
@@ -33,6 +31,8 @@ Adafruit_VL6180X vl = Adafruit_VL6180X();
 
 Adafruit_MCP9808 tempsensor = Adafruit_MCP9808();
 
+#include "led.h"
+
 /* Wifi Setup */
 #include "constants.h"
 int wifiStatus = WL_IDLE_STATUS;
@@ -52,12 +52,8 @@ int previousUploadButtonState = 0;
 
 int sensorValue = 0;
 
-/* NeoPixel Setup */
-int neoPixelPin = 15;
-
-int defaultRed = 0, defaultGreen = 0, defaultBlue = 0, defaultBrightness = 100;
-
-Adafruit_NeoPixel pixels(1, neoPixelPin, NEO_RGB + NEO_KHZ800);
+/* LED Setup */
+Led led(LED_PIN);
 
 /* Sensor Readings */
 float temp, pressure, humidity, altitude, lux;
@@ -101,28 +97,8 @@ void setup() {
 
   printBootMessages();
 
-  pixels.begin();
-  pixels.show();
-
-  // Turn on Lux LED to illuminate sensor:
-  // pixels.setPixelColor(0, pixels.Color(255, 75, 0));
-
-  for (int x = 0; x <= 128; x++) {
-    pixels.setPixelColor(0, pixels.Color(255, 75, 0));
-    pixels.setBrightness(x);
-    pixels.show();
-    delay(5);
-  }
-
-  for (int x = 32; x <= 64; x += 4) {
-    pixels.clear();
-    pixels.show();
-    delay(pow(1.1, x));
-
-    pixels.setPixelColor(0, pixels.Color(255, 75, 0));
-    pixels.show();
-    delay(pow(1.1, x));
-  }
+  led.init();
+  led.illuminateSensor();
 
   while (!Serial) { ; }
 
@@ -138,7 +114,7 @@ void setup() {
 
   initializeSDCard();
 
-  pixels.clear();
+  led.off();
 
 }
 
@@ -146,7 +122,7 @@ void loop() {
   sampleAndRecordTimer();
   uploadTimer();
   feedingButtonCheck();
-  defaultLED();
+  led.onDefault();
 }
 
 void connectToNet() {
@@ -237,13 +213,11 @@ void pingEndpoint() {
     Serial.print("Endpoint ping time: ");
     Serial.print(Ping.averageTime());
     Serial.println("ms");
-    defaultRed = 0;
-    blinkLED("blue");
+    led.displayLedMessage(LED_MSG_TYPE::INFO_PING_OK);
   } else {
     Serial.println("Endpoint ping timeout.");
-    defaultRed = 255;
-    defaultLED();
-    // blinkLED("red");
+    led.onDefault();
+    led.displayLedMessage(LED_MSG_TYPE::ERROR_NETWORK);
   }
 }
 
@@ -290,56 +264,15 @@ void uploadTimer() {
   }
 }
 
-void blinkLED(String color) {
-
-  int red, green, blue;
-
-  if (color == "red") {
-    red = 255;
-    green = 0;
-    blue = 0;
-  } else if (color == "green") {
-    red = 0;
-    green = 255;
-    blue = 0;
-  } else if (color == "blue") {
-    red = 0;
-    green = 0;
-    blue = 255;
-  } else if (color == "orange") {
-    red = 255;
-    green = 75;
-    blue = 0;
-  } else {
-    red = 0;
-    green = 0;
-    blue = 0;
-  }
-
-  pixels.setBrightness(defaultBrightness);
-  pixels.setPixelColor(0, pixels.Color(red, green, blue));
-  pixels.show();
-
-  if (color != "off") {
-    delay(200);
-  }
-}
-
-void defaultLED() {
-  pixels.setBrightness(defaultBrightness);
-  pixels.setPixelColor(0, pixels.Color(defaultRed, defaultGreen, defaultBlue));
-  pixels.show();
-}
-
 void sampleAndRecordTimer() {
   // Serial.println("sampleAndRecordTimer();");
   unsigned long currentSampleMillis = millis();
   if (currentSampleMillis - previousSampleMillis >= sampleInterval) {
     previousSampleMillis = currentSampleMillis;
-    blinkLED("orange");
+    led.displayLedMessage(LED_MSG_TYPE::INFO_SAMPLING_STARTED);
     sampleSensors();
     recordSensorData();
-    blinkLED("green");
+    led.displayLedMessage(LED_MSG_TYPE::INFO_OK);
     pingEndpoint();
   }
 }
@@ -546,7 +479,7 @@ bool uploadData(String dataName) {
 
   doc.clear();
 
-  blinkLED("off");
+  led.off();
 
   return true;
 }
@@ -585,17 +518,17 @@ void recordSensorData() {
     Serial.print(observation);
     Serial.print(F(" to "));
     Serial.println(localFilePath);
-    blinkLED("green");
+    led.displayLedMessage(LED_MSG_TYPE::INFO_OK);
   } else {
     Serial.print(F("Error opening: "));
     Serial.println(localFilePath);
-    blinkLED("red");
+    led.displayLedMessage(LED_MSG_TYPE::ERROR_FS);
   }
 }
 
 void recordFeeding() {
   Serial.println(F("Feeding button pressed!"));
-  blinkLED("blue");
+  led.displayLedMessage(LED_MSG_TYPE::INFO_BTN_PRESSED);
 
   if (timeStatus() != timeNotSet) {
     if (now() != timeStamp) {
@@ -622,11 +555,11 @@ void recordFeeding() {
     Serial.print(feeding);
     Serial.print(F(" to "));
     Serial.println(localFilePath);
-    blinkLED("green");
+    led.displayLedMessage(LED_MSG_TYPE::INFO_OK);
   } else {
     Serial.print(F("Error opening file: "));
     Serial.println(localFilePath);
-    blinkLED("red");
+    led.displayLedMessage(LED_MSG_TYPE::ERROR_FS);
   }
 
   jsonDoc.clear();
@@ -668,7 +601,7 @@ bool endpointOnline() {
 
 bool sendMetric(String path) {
 
-  blinkLED("blue");
+  led.displayLedMessage(LED_MSG_TYPE::INFO_SEND_METRICS);
 
   Serial.print(F("POST'ing to "));
   Serial.print(API_ENDPOINT);
@@ -692,20 +625,17 @@ bool sendMetric(String path) {
   DeserializationError error = deserializeJson(doc, response);
 
   if (doc.containsKey("red")) {
-    defaultRed = doc["red"];
-    defaultBlue = doc["blue"];
-    defaultGreen = doc["green"];
-    defaultBrightness = doc["brightness"];
-    defaultLED();
+    led.updateDefaults(doc["red"], doc["green"], doc["blue"], doc["brightness"]);
+    led.onDefault();
   }
 
   if (statusCode == 200) {
     Serial.println("Upload OK!");
-    blinkLED("green");
+    led.displayLedMessage(LED_MSG_TYPE::INFO_OK);
     return true;
   } else {
     Serial.println("Upload Error!");
-    blinkLED("red");
+    led.displayLedMessage(LED_MSG_TYPE::ERROR_UPLOAD);
     return false;
   }
 }
@@ -761,7 +691,7 @@ time_t getNtpTime() {
     }
   }
   Serial.println(F("No NTP Response :-("));
-  blinkLED("red");
+  led.displayLedMessage(LED_MSG_TYPE::ERROR_NETWORK);
   return 0; // return 0 if unable to get the time
 }
 

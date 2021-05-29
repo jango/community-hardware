@@ -3,7 +3,7 @@
 #define API_PATH "/api/v1/"
 #define HEALTH_ENDPOINT "/health"
 
-#define DEVICE_ID TBD
+#define DEVICE_ID 58
 
 #define UPLOAD_BATCH_SIZE 25
 #define UPLOADS_PER_HOUR 4

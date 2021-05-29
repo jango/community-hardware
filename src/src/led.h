@@ -5,7 +5,7 @@
 #define LED_PIN 15
 
 // Default value for how long the led stays on when blinking.
-#define LED_BLINK_DELAY 500
+#define LED_BLINK_DELAY 200
 
 /**
  * Defines message types.

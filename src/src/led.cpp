@@ -22,7 +22,7 @@ Led::Led(byte pin) {
  * @param green value of the green component.
  * @param brightness value of the brightness component.
  * @param delayms how long to keep the led on.
- * @param times how many time to blink.
+ * @param times how many times to blink.
  */
 void Led::blink(int red, int green, int blue, int brightness, int delayms, int times){
   off();
@@ -31,6 +31,8 @@ void Led::blink(int red, int green, int blue, int brightness, int delayms, int t
     on(red, green, blue, brightness);
     delay(delayms);
     off();  
+
+    // Stay off for half a cycle shorter than on.
     delay(delayms/2);  
   }
 }

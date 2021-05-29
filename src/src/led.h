@@ -1,9 +1,15 @@
 #ifndef MY_LED_H
 #define MY_LED_H
 
+// Led pin number.
 #define LED_PIN 15
+
+// Default value for how long the led stays on when blinking.
 #define LED_BLINK_DELAY 200
 
+/**
+ * Defines message types.
+ */
 enum class LED_MSG_TYPE {
     INFO_OK,
     INFO_PING_OK,

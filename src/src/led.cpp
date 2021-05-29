@@ -1,5 +1,10 @@
 #include "Led.h"
 
+/**
+ * Initialize led class.
+ * 
+ * @param pin the pin to which the ledi s connected.
+ */
 Led::Led(byte pin) {
   this->pin = pin;
   this->defaultRed = 0;
@@ -9,6 +14,16 @@ Led::Led(byte pin) {
   this->pixels = Adafruit_NeoPixel(1, pin, NEO_RGB + NEO_KHZ800);
 }
 
+/**
+ * Blinks a specified number of times with specified color.
+ *
+ * @param red value of the red component.
+ * @param blue value of the blue component.
+ * @param green value of the green component.
+ * @param brightness value of the brightness component.
+ * @param delayms how long to keep the led on.
+ * @param times how many time to blink.
+ */
 void Led::blink(int red, int green, int blue, int brightness, int delayms, int times){
   off();
 
@@ -19,11 +34,22 @@ void Led::blink(int red, int green, int blue, int brightness, int delayms, int t
   }
 }
 
+/**
+ * Inits the led strip.
+ */
 void Led::init() {
-  this->pixels.begin();
-  this->pixels.show();
+  pixels.begin();
+  pixels.show();
 }
 
+/**
+ * Updates default colors and brightness of led.
+ * 
+ * @param defaultRed value of the red component.
+ * @param defaultBlue value of the blue component.
+ * @param defaultGreen value of the green component.
+ * @param defaultBrightness value of the brightness component.
+ */
 void Led::updateDefaults(int defaultRed, int defaultGreen, int defaultBlue, int defaultBrightness){
   this->defaultRed = defaultRed;
   this->defaultGreen = defaultGreen;
@@ -31,10 +57,10 @@ void Led::updateDefaults(int defaultRed, int defaultGreen, int defaultBlue, int 
   this->defaultBrightness = defaultBrightness;
 }
 
+/**
+ * Uses an led sequence to illuminate the sensor.
+ */
 void Led::illuminateSensor(){
-  // Turn on Lux LED to illuminate sensor:
-  // pixels.setPixelColor(0, pixels.Color(255, 75, 0));
-
   for (int x = 0; x <= 128; x++) {
     pixels.setPixelColor(0, pixels.Color(255, 75, 0));
     pixels.setBrightness(x);
@@ -53,8 +79,13 @@ void Led::illuminateSensor(){
   }
 }
 
+/**
+ * Displays a pre-defined led "message".
+ * 
+ * @param msgType the message to display.
+ */
 void Led::displayLedMessage(LED_MSG_TYPE msgType) {
-  this->pixels.setBrightness(this->defaultBrightness);
+  pixels.setBrightness(defaultBrightness);
 
   switch(msgType){
     case LED_MSG_TYPE::INFO_OK:
@@ -84,16 +115,35 @@ void Led::displayLedMessage(LED_MSG_TYPE msgType) {
   }
 }
 
+/**
+ * Turns on and keeps on led using saved default values. 
+ *
+ * @param defaultRed value of the red component.
+ * @param defaultBlue value of the blue component.
+ * @param defaultGreen value of the green component.
+ * @param defaultBrightness value of the brightness component.
+ */
 void Led::onDefault() {
-  on(this->defaultRed, this->defaultGreen, this->defaultBlue, this->defaultBrightness);
+  on(defaultRed, defaultGreen, defaultBlue, defaultBrightness);
 }
 
+/**
+ * Turns led on with specified color and brightness values.
+ * 
+ * @param red value of the red component.
+ * @param blue value of the blue component.
+ * @param green value of the green component.
+ * @param brightness value of the brightness component.
+ */
 void Led::on(int red, int green, int blue, int brightness) {
-  this->pixels.setBrightness(brightness);
-  this->pixels.setPixelColor(0, pixels.Color(red, green, blue));
-  this->pixels.show();
+  pixels.setBrightness(brightness);
+  pixels.setPixelColor(0, pixels.Color(red, green, blue));
+  pixels.show();
 }
 
+/**
+ * Turns led off.
+ */
 void Led::off() {
-  this->pixels.clear();
+  pixels.clear();
 }

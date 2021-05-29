@@ -31,6 +31,7 @@ void Led::blink(int red, int green, int blue, int brightness, int delayms, int t
     on(red, green, blue, brightness);
     delay(delayms);
     off();  
+    delay(delayms/2);  
   }
 }
 
@@ -146,4 +147,5 @@ void Led::on(int red, int green, int blue, int brightness) {
  */
 void Led::off() {
   pixels.clear();
+  pixels.show();
 }

@@ -5,7 +5,7 @@
 #define LED_PIN 15
 
 // Default value for how long the led stays on when blinking.
-#define LED_BLINK_DELAY 200
+#define LED_BLINK_DELAY 500
 
 /**
  * Defines message types.
@@ -33,8 +33,6 @@ class Led {
     int defaultBrightness;
     Adafruit_NeoPixel pixels;
     
-    void blink(int red, int green, int blue, int brightness, int delayms, int times);
-    
   public:
     Led(byte pin);
     void init();
@@ -44,6 +42,7 @@ class Led {
     void onDefault();
     void on(int red, int green, int blue, int brightness);
     void off();
+    void blink(int red, int green, int blue, int brightness, int delayms, int times);
 };
 
 #endif
